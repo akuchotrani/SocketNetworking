@@ -35,10 +35,7 @@ while(True):
     
     print('sending image....')
     s.send(data)
-#s.send(image_file.read())
 image_file.close()
-#    s.sendfile(image_file);
-#print('Successfully get the file')
 print('Successfully sent the file')
 s.close()
 print('connection closed')
