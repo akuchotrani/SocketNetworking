@@ -23,7 +23,6 @@ s.connect((SERVER_IP , port))
 
 filename = 'meme.jpg'
 
-last_image_captured = ""
 def Capture_Webcam_Image():
     cam = cv2.VideoCapture(0)
     image_counter = 0
@@ -32,21 +31,26 @@ def Capture_Webcam_Image():
         cv2.imshow("webcam image",frame)
         if not ret:
             break
-        
         key = cv2.waitKey(1)
         
         if key%256 == 27:
             print("Escape pressed, closing....")
+            cam.release()
+            cv2.destroyAllWindows()
+            s.close()
+            print('connection closed')
             break
         elif key%256 == 32:
             #Space pressed
             img_name = host + str(image_counter) + ".jpg"
             cv2.imwrite(img_name, frame)
             image_counter = image_counter + 1
+            print("captureing image: ",img_name)
+            Send_Image_To_Server(img_name)
 
 
-def Send_Image_To_Server():
-    image_file = open(filename,'rb')
+def Send_Image_To_Server(image_name):
+    image_file = open(image_name,'rb')
     image_size = 0;
     while(True):
         data = image_file.read(4096)
@@ -62,14 +66,12 @@ def Send_Image_To_Server():
         s.send(data)
     image_file.close()
     print('Successfully sent the file')
-    s.close()
-    print('connection closed')
+
     
     
 def main():
     print("Client Code")
     Capture_Webcam_Image() 
-    Send_Image_To_Server()
 
 
 if __name__ == "__main__":

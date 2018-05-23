@@ -30,11 +30,12 @@ def recvall(sock):
         if part == b'':
             break
         Image_Size += 4096
-        print(Image_Size)
+#        print(Image_Size)
     return data
 
 print ('Server listening....')
 thanks_message = 'Thank you for connecting'
+server_img_counter = 0
 while True:
     conn, addr = s.accept()     # Establish connection with client.
     print ('Got connection from', addr)
@@ -45,7 +46,10 @@ while True:
 
     image = Image.open(io.BytesIO(buffer))
     image.show()
-    image.save('server_img.jpg')
+    server_img_name = "server_"+str(server_img_counter) + ".jpg"
+    print("saving image: ",server_img_name)
+    image.save(server_img_name)
+    server_img_counter = server_img_counter + 1
     
     
 
