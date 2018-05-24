@@ -20,6 +20,36 @@ s.bind((host, port))            # Bind to the port
 s.listen(5)                     # Now wait for client connection.
 
 
+
+class Queue:
+
+  def __init__(self):
+      self.queue = list()
+
+  def addtoq(self,dataval):
+# Insert method to add element
+      if dataval not in self.queue:
+          self.queue.insert(0,dataval)
+          return True
+      return False
+  
+# Pop method to remove element
+  def removefromq(self):
+      if len(self.queue)>0:
+          return self.queue.pop()
+      return ("No elements in Queue!")
+  
+  def isEmpty(self):
+      if(len(self.queue) == 0):
+          return True
+      else:
+          return False
+
+
+ImageReceivedQueue = Queue()
+
+
+
 def recvall(sock):
     BUFF_SIZE = 4096 # 4 KiB
     Image_Size = 0
@@ -27,10 +57,17 @@ def recvall(sock):
     while True:
         part = sock.recv(BUFF_SIZE)
         data += part
+        
         if part == b'':
+            ImageReceivedQueue.addtoq(data)
+            data = b''
+            Image_Size = 0
             break
+        
+        
         Image_Size += 4096
-#        print(Image_Size)
+        print(Image_Size)
+        
     return data
 
 print ('Server listening....')
@@ -43,16 +80,26 @@ while True:
     print("Server received an Image from client")
     counter = 1
     buffer = recvall(conn)
-
-    image = Image.open(io.BytesIO(buffer))
-    image.show()
-    server_img_name = "server_"+str(server_img_counter) + ".jpg"
-    print("saving image: ",server_img_name)
-    image.save(server_img_name)
-    server_img_counter = server_img_counter + 1
+    
+    if(ImageReceivedQueue.isEmpty() == False):
+        print("new image in the queue")
+        imageBytes = ImageReceivedQueue.removefromq()
+        image = Image.open(io.BytesIO(imageBytes))
+        image.show()
+        server_img_name = "server_"+str(server_img_counter) + ".jpg"
+        print("saving image: ",server_img_name)
+        image.save(server_img_name)
+        server_img_counter = server_img_counter + 1
+    
+#    image = Image.open(io.BytesIO(buffer))
+#    image.show()
+#    server_img_name = "server_"+str(server_img_counter) + ".jpg"
+#    print("saving image: ",server_img_name)
+#    image.save(server_img_name)
+#    server_img_counter = server_img_counter + 1
     
     
 
     print('Done Receiving')
-    conn.sendto(thanks_message.encode(),(host,port))
+#    conn.sendto(thanks_message.encode(),(host,port))
     conn.close()
