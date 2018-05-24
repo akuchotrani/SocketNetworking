@@ -4,10 +4,13 @@ Created on Fri May 18 13:49:43 2018
 
 @author: aakash.chotrani
 """
+
+
 from PIL import Image
 from PIL import ImageFile
 import socket                   # Import socket module
 import io
+import os
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -20,7 +23,7 @@ s.bind((host, port))            # Bind to the port
 s.listen(5)                     # Now wait for client connection.
 
 
-
+#####################################################################################
 class Queue:
 
   def __init__(self):
@@ -47,7 +50,11 @@ class Queue:
 
 
 ImageReceivedQueue = Queue()
-
+#####################################################################################
+dir_server_image_dump = "ServerImages"
+if not os.path.exists(dir_server_image_dump):
+    print("creating server images folder")
+    os.makedirs(dir_server_image_dump)
 
 
 def recvall(sock):
@@ -88,7 +95,8 @@ while True:
         image.show()
         server_img_name = "server_"+str(server_img_counter) + ".jpg"
         print("saving image: ",server_img_name)
-        image.save(server_img_name)
+        
+        image.save(dir_server_image_dump + server_img_name)
         server_img_counter = server_img_counter + 1
     
 #    image = Image.open(io.BytesIO(buffer))
