@@ -30,7 +30,8 @@ KnownPersonNewFaceConfidence =float(Data['KnownPersonNewFaceConfidence'])
 SharedFolderPath = Data['SharedFolderPath']
 
 
-dir_save_face_path = "//" + SharedFolderPath
+#dir_save_face_path = "//" + SharedFolderPath
+dir_save_face_path = SharedFolderPath
 if not os.path.exists(dir_save_face_path):
     os.makedirs(dir_save_face_path)
 dir_path = dir_save_face_path
