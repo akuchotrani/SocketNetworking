@@ -4,7 +4,7 @@ Created on Fri May 18 13:49:43 2018
 
 @author: aakash.chotrani
 """
-
+import FaceRecognitionComplete
 
 from PIL import Image
 from PIL import ImageFile
@@ -94,9 +94,12 @@ while True:
         image = Image.open(io.BytesIO(imageBytes))
         image.show()
         server_img_name = "server_"+str(server_img_counter) + ".jpg"
+        image_save_path = dir_server_image_dump+ "/"+ server_img_name
         print("saving image: ",server_img_name)
         
-        image.save(dir_server_image_dump + server_img_name)
+        image.save(image_save_path)
+        FaceRecognitionComplete.Run_Face_Recognition(image_save_path)
+
         server_img_counter = server_img_counter + 1
     
 #    image = Image.open(io.BytesIO(buffer))
