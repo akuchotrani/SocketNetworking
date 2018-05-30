@@ -20,9 +20,12 @@ SERVER_HOST_NAME = 'dit2578us'
 #s.sendto(message.encode(),(host,port))
 
 filename = 'meme.jpg'
-
+CV_CAP_PROP_FRAME_WIDTH = 3
+CV_CAP_PROP_FRAME_HEIGHT = 4
 def Capture_Webcam_Image():
     cam = cv2.VideoCapture(0)
+    cam.set(CV_CAP_PROP_FRAME_WIDTH,1920);
+    cam.set(CV_CAP_PROP_FRAME_HEIGHT,1080);
     image_counter = 0
     while True:
         ret,original_frame = cam.read()
