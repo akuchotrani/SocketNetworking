@@ -77,30 +77,34 @@ def recvall(sock):
         
     return data
 
-print ('Server listening....')
-thanks_message = 'Thank you for connecting'
-server_img_counter = 0
-while True:
-    conn, addr = s.accept()     # Establish connection with client.
-    print ('Got connection from', addr)
-    
-    print("Server received an Image from client")
-    counter = 1
-    buffer = recvall(conn)
-    
-    if(ImageReceivedQueue.isEmpty() == False):
-        print("new image in the queue")
-        imageBytes = ImageReceivedQueue.removefromq()
-        image = Image.open(io.BytesIO(imageBytes))
-        image.show()
-        server_img_name = "server_"+str(server_img_counter) + ".jpg"
-        image_save_path = dir_server_image_dump+ "/"+ server_img_name
-        print("saving image: ",server_img_name)
-        
-        image.save(image_save_path)
-        FaceRecognitionComplete.Run_Face_Recognition(image_save_path)
 
-        server_img_counter = server_img_counter + 1
+
+def Server_Run_Forever():
+
+
+    print ('Server listening....')
+    server_img_counter = 0
+
+    while True:
+        conn, addr = s.accept()     # Establish connection with client.
+        print ('Got connection from', addr)
+        
+        print("Server received an Image from client")
+        buffer = recvall(conn)
+        
+        if(ImageReceivedQueue.isEmpty() == False):
+            print("new image in the queue")
+            imageBytes = ImageReceivedQueue.removefromq()
+            image = Image.open(io.BytesIO(imageBytes))
+    #        image.show()
+            server_img_name = "server_"+str(server_img_counter) + ".jpg"
+            image_save_path = dir_server_image_dump+ "/"+ server_img_name
+            print("saving image: ",server_img_name)
+            
+            image.save(image_save_path)
+            FaceRecognitionComplete.Run_Face_Recognition(image_save_path)
+    
+            server_img_counter = server_img_counter + 1
     
 #    image = Image.open(io.BytesIO(buffer))
 #    image.show()
@@ -108,7 +112,23 @@ while True:
 #    print("saving image: ",server_img_name)
 #    image.save(server_img_name)
 #    server_img_counter = server_img_counter + 1
-    
+
+
+##########################################################################################
+def main():
+    try:
+        print("Running server forever")
+        Server_Run_Forever()
+        
+    except KeyboardInterrupt:
+        print('^C received, shutting down server')
+        s.close()
+        
+        
+##########################################################################################
+if __name__ == "__main__":
+    print("Server Launched")
+    main()
     
 
     print('Done Receiving')

@@ -25,8 +25,9 @@ def Capture_Webcam_Image():
     cam = cv2.VideoCapture(0)
     image_counter = 0
     while True:
-        ret,frame = cam.read()
-        cv2.imshow("webcam image",frame)
+        ret,original_frame = cam.read()
+        frame = original_frame[:, :, ::-1]
+        cv2.imshow("webcam image",original_frame)
         if not ret:
             break
         key = cv2.waitKey(1)

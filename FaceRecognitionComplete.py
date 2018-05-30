@@ -17,6 +17,10 @@ known_face_names = []
 known_face_encodings = []
 directory_already_trained = []
 dir_path = ''
+
+
+face_names_found = []
+face_names_found.clear()
     
 with open('ApplicationParameters.json') as json_data:
     Data = json.load(json_data)
@@ -82,61 +86,57 @@ def Train_Face_Captured_By_Another_Camera(folder_name,path):
 def Run_Face_Recognition(ServerImagePath):
     global directory_already_trained
     print('Running Face recognition for image',ServerImagePath )
-    face_names_found = []
-    
 
     
-    while True:
-        
-        face_names_found.clear()
-        
-        CurrentImage = face_recognition.load_image_file(ServerImagePath)
-        face_locations = face_recognition.face_locations(CurrentImage)
-        face_encodings = face_recognition.face_encodings(CurrentImage, face_locations)
-        
-        for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-            
-            #matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-            distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+    CurrentImage = face_recognition.load_image_file(ServerImagePath)
+    face_locations = face_recognition.face_locations(CurrentImage)
+    face_encodings = face_recognition.face_encodings(CurrentImage, face_locations)
     
-            name = "Unknown"
-            
-            lowest_distance = 1.0
-            lowest_index = 0
-            found = False
-            
-            for i, face_distance in enumerate(distances):
-                
-                if lowest_distance > face_distance:
-                    lowest_distance = face_distance
-                    lowest_index = i
-                
-            if lowest_distance < KnownPersonConfidence:
-                    name = known_face_names[lowest_index]
-                    found = True
-    
-            if found == False:
-                face_image = CurrentImage[top:bottom, left:right]    
-                #We know this person but less confident
-                if lowest_distance < KnownPersonNewFaceConfidence:
-                    name = known_face_names[lowest_index]
-                    dir_name = dir_path + "/" + name
-                    cv2.imwrite(dir_name + "/" + str(len(known_face_names)) + ".jpg", face_image)
-                    known_face_names.append(name)
-                    known_face_encodings.append(face_encoding)
-                #We have seen this face for the first time. Create a new directory.
-                else:
-                    name = "face_" + str(len(known_face_names))
-                    dir_name = dir_path + "/" + name
-                    if not os.path.exists(dir_name):
-                        print('making a new directory:',dir_name)
-                        os.makedirs(dir_name)
-                    cv2.imwrite(dir_name + "/1.jpg", face_image)
-                    known_face_names.append(name)
-                    known_face_encodings.append(face_encoding)
-                    
-            face_names_found.append(name)
+    for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
         
+        #matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+        distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+
+        name = "Unknown"
+        
+        lowest_distance = 1.0
+        lowest_index = 0
+        found = False
+        
+        for i, face_distance in enumerate(distances):
+            if lowest_distance > face_distance:
+                lowest_distance = face_distance
+                lowest_index = i
+            
+        if lowest_distance < KnownPersonConfidence:
+                name = known_face_names[lowest_index]
+                print("I know this person hence I am not capturing it")
+                found = True
+
+        if found == False:
+            face_image = CurrentImage[top:bottom, left:right]    
+            #We know this person but less confident
+            if lowest_distance < KnownPersonNewFaceConfidence:
+                print("New Expression of known person. Hence capturing it")
+                name = known_face_names[lowest_index]
+                dir_name = dir_path + "/" + name
+                cv2.imwrite(dir_name + "/" + str(len(known_face_names)) + ".jpg", face_image)
+                known_face_names.append(name)
+                known_face_encodings.append(face_encoding)
+            #We have seen this face for the first time. Create a new directory.
+            else:
+                print("I don't know this person hence creating a new directory")
+                name = "face_" + str(len(known_face_names))
+                dir_name = dir_path + "/" + name
+                if not os.path.exists(dir_name):
+                    print('making a new directory:',dir_name)
+                    os.makedirs(dir_name)
+                cv2.imwrite(dir_name + "/1.jpg", face_image)
+                known_face_names.append(name)
+                known_face_encodings.append(face_encoding)
+                
+        face_names_found.append(name)
+    
 
 
     
