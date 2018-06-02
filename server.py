@@ -11,6 +11,7 @@ from PIL import ImageFile
 import socket                   # Import socket module
 import io
 import os
+import _thread
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -57,7 +58,8 @@ if not os.path.exists(dir_server_image_dump):
     os.makedirs(dir_server_image_dump)
 
 
-def recvall(sock):
+def recvall(sock,addr):
+    print("Server is receiving image from ",addr)
     BUFF_SIZE = 4096 # 4 KiB
     Image_Size = 0
     data = b''
@@ -73,9 +75,11 @@ def recvall(sock):
         
         
         Image_Size += 4096
-        print(Image_Size)
+#        print(Image_Size)
         
     return data
+
+            
 
 
 
@@ -86,12 +90,8 @@ def Server_Run_Forever():
     server_img_counter = 0
 
     while True:
-        conn, addr = s.accept()     # Establish connection with client.
-        print ('Got connection from', addr)
-        
-        print("Server received an Image from client")
-        buffer = recvall(conn)
-        
+        conn_client_socket, addr = s.accept()     # Establish connection with client.
+        _thread.start_new_thread(recvall,(conn_client_socket,addr))
         if(ImageReceivedQueue.isEmpty() == False):
             print("new image in the queue")
             imageBytes = ImageReceivedQueue.removefromq()
@@ -102,10 +102,10 @@ def Server_Run_Forever():
             print("saving image: ",server_img_name)
             
             image.save(image_save_path)
+            
             FaceRecognitionComplete.Run_Face_Recognition(image_save_path)
-    
             server_img_counter = server_img_counter + 1
-    
+        
 #    image = Image.open(io.BytesIO(buffer))
 #    image.show()
 #    server_img_name = "server_"+str(server_img_counter) + ".jpg"
@@ -128,8 +128,3 @@ def main():
 if __name__ == "__main__":
     print("Server Launched")
     main()
-    
-
-    print('Done Receiving')
-#    conn.sendto(thanks_message.encode(),(host,port))
-    conn.close()

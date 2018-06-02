@@ -81,6 +81,11 @@ def Train_Face_Captured_By_Another_Camera(folder_name,path):
 
 
 
+def Write_Encoding_To_File(encodingsCaptured):
+    theFile = open('Encoding.txt','a')
+    theFile.write("%s\n"%encodingsCaptured)
+
+
 
 
 def Run_Face_Recognition(ServerImagePath):
@@ -91,6 +96,8 @@ def Run_Face_Recognition(ServerImagePath):
     CurrentImage = face_recognition.load_image_file(ServerImagePath)
     face_locations = face_recognition.face_locations(CurrentImage)
     face_encodings = face_recognition.face_encodings(CurrentImage, face_locations)
+    
+    
     
     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
         
@@ -110,7 +117,14 @@ def Run_Face_Recognition(ServerImagePath):
             
         if lowest_distance < KnownPersonConfidence:
                 name = known_face_names[lowest_index]
-                print("I know this person hence I am not capturing it")
+                print("I know this person. Capture and Classify to the correct folder")
+                face_image = CurrentImage[top:bottom, left:right]    
+                name = known_face_names[lowest_index]
+                dir_name = dir_path + "/" + name
+                cv2.imwrite(dir_name + "/" + str(len(known_face_names)) + ".jpg", face_image)
+                known_face_names.append(name)
+                known_face_encodings.append(face_encoding)
+                Write_Encoding_To_File(face_encoding)
                 found = True
 
         if found == False:
@@ -123,6 +137,8 @@ def Run_Face_Recognition(ServerImagePath):
                 cv2.imwrite(dir_name + "/" + str(len(known_face_names)) + ".jpg", face_image)
                 known_face_names.append(name)
                 known_face_encodings.append(face_encoding)
+                Write_Encoding_To_File(face_encoding)
+
             #We have seen this face for the first time. Create a new directory.
             else:
                 print("I don't know this person hence creating a new directory")
@@ -134,7 +150,8 @@ def Run_Face_Recognition(ServerImagePath):
                 cv2.imwrite(dir_name + "/1.jpg", face_image)
                 known_face_names.append(name)
                 known_face_encodings.append(face_encoding)
-                
+                Write_Encoding_To_File(face_encoding)
+
         face_names_found.append(name)
     
 
