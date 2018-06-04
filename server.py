@@ -88,7 +88,7 @@ def Server_Run_Forever():
 
     print ('Server listening....')
     server_img_counter = 0
-
+    
     while True:
         conn_client_socket, addr = s.accept()     # Establish connection with client.
         _thread.start_new_thread(recvall,(conn_client_socket,addr))
@@ -116,6 +116,7 @@ def Server_Run_Forever():
 
 ##########################################################################################
 def main():
+    FaceRecognitionComplete.Train_Known_Encodings()
     try:
         print("Running server forever")
         Server_Run_Forever()
