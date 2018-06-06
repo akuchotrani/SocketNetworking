@@ -7,28 +7,38 @@ Created on Fri May 18 13:44:22 2018
 import socket                   # Import socket module
 import cv2
 import time
+import json
+
+with open('ClientParameters.json') as json_data:
+    Data = json.load(json_data)
+    print('Json Application Param Data')
+    print(Data)
+    
+
+
+CAM_Index = float(Data['CameraIndex'])
+
+timer_delay_capture = float(Data['ImageCaptureTimer'])
+SERVER_IP = Data['ServerIP']
+SERVER_HOST_NAME = Data['ServerHostName']
+
+
+Frame_Width_Resolution = float(Data['ResolutionWidth'])
+Frame_Height_Resolution = float(Data['ResolutionHeight'])
+
 host = socket.gethostname()     # Get local machine name
 print("client host name:",host)
 port = 60000                    # Reserve a port for your service.
 
-SERVER_IP = '10.10.33.58'
-SERVER_HOST_NAME = 'dit2578us'
-#ip_test = socket.gethostbyname(SERVER_HOST_NAME)
-#print('IPTEST:',ip_test)
-#s.connect((SERVER_IP , port))
-#message = "Hello from client"
-#s.sendto(message.encode(),(host,port))
 
-
-timer_delay_capture = 5
-
-filename = 'meme.jpg'
 CV_CAP_PROP_FRAME_WIDTH = 3
 CV_CAP_PROP_FRAME_HEIGHT = 4
+
+
 def Capture_Webcam_Image():
-    cam = cv2.VideoCapture(0)
-    cam.set(CV_CAP_PROP_FRAME_WIDTH,1920);
-    cam.set(CV_CAP_PROP_FRAME_HEIGHT,1080);
+    cam = cv2.VideoCapture(CAM_Index)
+    cam.set(CV_CAP_PROP_FRAME_WIDTH,Frame_Width_Resolution);
+    cam.set(CV_CAP_PROP_FRAME_HEIGHT,Frame_Height_Resolution);
     image_counter = 0
     
     capture_time = time.time() + timer_delay_capture
@@ -94,7 +104,7 @@ def Send_Image_To_Server(image_name,socket):
     
     
 def main():
-    print("Client Code")
+    print("Client Launched")
     Capture_Webcam_Image() 
 
 
