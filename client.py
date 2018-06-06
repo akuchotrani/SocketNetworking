@@ -16,7 +16,7 @@ with open('ClientParameters.json') as json_data:
     
 
 
-CAM_Index = float(Data['CameraIndex'])
+CAM_Index = int(Data['CameraIndex'])
 
 timer_delay_capture = float(Data['ImageCaptureTimer'])
 SERVER_IP = Data['ServerIP']
@@ -93,7 +93,6 @@ def Send_Image_To_Server(image_name,socket):
     while(True):
         data = image_file.read(4096)
         if not data:
-            print('data is empty')
             break
         image_size += 4096
 #        print(image_size)
