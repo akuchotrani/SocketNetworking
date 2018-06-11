@@ -8,6 +8,12 @@ import socket                   # Import socket module
 import cv2
 import time
 import json
+import os
+
+dir_client_image_dump = "ClientImages"
+if not os.path.exists(dir_client_image_dump):
+    print("creating client images folder")
+    os.makedirs(dir_client_image_dump)
 
 with open('ClientParameters.json') as json_data:
     Data = json.load(json_data)
@@ -64,7 +70,7 @@ def Capture_Webcam_Image():
             img_name = host + str(image_counter) + ".jpg"
             cv2.imwrite(img_name, frame)
             image_counter = image_counter + 1
-            print("captureing image: ",img_name)
+            print("capturing image: ",img_name)
             Send_Image_To_Server(img_name,s)
             s.close()
         
@@ -76,10 +82,11 @@ def Capture_Webcam_Image():
             s = socket.socket()             # Create a socket object
             s.connect((SERVER_IP , port))
             img_name = host + str(image_counter) + ".jpg"
-            cv2.imwrite(img_name, frame)
+            image_save_path = dir_client_image_dump+ "/"+ img_name
+            cv2.imwrite(image_save_path, frame)
             image_counter = image_counter + 1
-            print("captureing image: ",img_name)
-            Send_Image_To_Server(img_name,s)
+            print("capturing image: ",img_name)
+            Send_Image_To_Server(image_save_path,s)
             s.close()
             capture_time = currentTime + timer_delay_capture
             
