@@ -11,6 +11,9 @@ import os
 import json
 import pickle
 from pathlib import Path
+
+import time
+import datetime
 #import multiprocessing
 #from multiprocessing import freeze_support
 #from multiprocessing import Pool
@@ -28,15 +31,23 @@ with open('ApplicationParameters.json') as json_data:
     print('Json Application Param Data')
     print(Data)
 
-CameraIndex = Data['CameraIndex']    
-CaptureTimer = float(Data['ImageCaptureTimer'])
+#CameraIndex = Data['CameraIndex']    
+#CaptureTimer = float(Data['ImageCaptureTimer'])
 KnownPersonConfidence =float(Data['KnownPersonConfidence'])
 KnownPersonNewFaceConfidence =float(Data['KnownPersonNewFaceConfidence'])
-SharedFolderPath = Data['SharedFolderPath']
+#SharedFolderPath = Data['SharedFolderPath']
+
+
+generated_directory = "GeneratedData"
+if not os.path.exists(generated_directory):
+    os.makedirs(generated_directory)
+
+
+
 
 
 #dir_save_face_path = "//" + SharedFolderPath
-dir_save_face_path = SharedFolderPath
+dir_save_face_path = generated_directory + "/Face_Classification"
 if not os.path.exists(dir_save_face_path):
     os.makedirs(dir_save_face_path)
 dir_path = dir_save_face_path
@@ -46,39 +57,39 @@ dir_path = dir_save_face_path
 
 
 
-Known_People_Count = 0
-def Train_Known_Faces():
-    global Known_People_Count
-    global directory_already_trained
-    directory_already_trained = []
+#Known_People_Count = 0
+#def Train_Known_Faces():
+#    global Known_People_Count
+#    global directory_already_trained
+#    directory_already_trained = []
+#
+#    for entry in os.scandir(dir_path):
+#        if entry.is_dir():
+#            Known_People_Count = Known_People_Count + 1
+#            #keeping track of all the directories already trained
+#            directory_already_trained.append(entry.path)
+#            for entry2 in os.scandir(entry.path):
+#                if entry2.is_file():
+#                    image = face_recognition.load_image_file(entry2.path)
+#                    face_encodings = face_recognition.face_encodings(image)
+#                    if len(face_encodings) == 0:
+#                        continue
+#                    
+#                    face_encoding = face_encodings[0]
+#                    known_face_names.append(entry.name)
+#                    known_face_encodings.append(face_encoding)
 
-    for entry in os.scandir(dir_path):
-        if entry.is_dir():
-            Known_People_Count = Known_People_Count + 1
-            #keeping track of all the directories already trained
-            directory_already_trained.append(entry.path)
-            for entry2 in os.scandir(entry.path):
-                if entry2.is_file():
-                    image = face_recognition.load_image_file(entry2.path)
-                    face_encodings = face_recognition.face_encodings(image)
-                    if len(face_encodings) == 0:
-                        continue
-                    
-                    face_encoding = face_encodings[0]
-                    known_face_names.append(entry.name)
-                    known_face_encodings.append(face_encoding)
 
-
-def Train_Face_Captured_By_Another_Camera(folder_name,path):
-    for file in os.scandir(path):
-        if file.is_file():
-            image = face_recognition.load_image_file(file.path)
-            face_encodings = face_recognition.face_encodings(image)
-            if len(face_encodings) == 0:
-                continue
-            face_encoding = face_encodings[0]
-            known_face_names.append(folder_name)
-            known_face_encodings.append(face_encoding)
+#def Train_Face_Captured_By_Another_Camera(folder_name,path):
+#    for file in os.scandir(path):
+#        if file.is_file():
+#            image = face_recognition.load_image_file(file.path)
+#            face_encodings = face_recognition.face_encodings(image)
+#            if len(face_encodings) == 0:
+#                continue
+#            face_encoding = face_encodings[0]
+#            known_face_names.append(folder_name)
+#            known_face_encodings.append(face_encoding)
 
 
 
@@ -86,17 +97,17 @@ def Train_Known_Encodings():
     global known_face_encodings
     global known_face_names
     print("Loading the encodings known already and face names")
-    encodingFile_path = Path('Encoding.txt')
+    encodingFile_path = Path(generated_directory + 'Encoding.txt')
     if encodingFile_path.exists():
-        encodingFile = open('Encoding.txt','rb')
+        encodingFile = open(generated_directory + 'Encoding.txt','rb')
         encodingList = pickle.load(encodingFile)
         known_face_encodings = encodingList
         print("#FaceRecognition.py - #Train_Known_Encoding : known_face_encoding:")
         print(known_face_encodings)
     
-    knownNamesFile_Path = Path('Known_Names.txt')
+    knownNamesFile_Path = Path(generated_directory + '/Known_Names.txt')
     if knownNamesFile_Path.exists():
-        knownNamesFile = open('Known_Names.txt','rb')
+        knownNamesFile = open(generated_directory + '/Known_Names.txt','rb')
         known_face_names = pickle.load(knownNamesFile)
         print(known_face_names)
     else:
@@ -104,12 +115,12 @@ def Train_Known_Encodings():
     
     
 def Write_Encoding_To_File(encodingsCaptured):
-    encodingFile = open('Encoding.txt','wb')
+    encodingFile = open(generated_directory + '/Encoding.txt','wb')
 #    encodingFile.write("%s\n"%encodingsCaptured)
     pickle.dump(known_face_encodings,encodingFile)
     encodingFile.close()
     
-    knownNamesFile = open('Known_Names.txt','wb')
+    knownNamesFile = open(generated_directory + '/Known_Names.txt','wb')
 #    encodingFile.write("%s\n"%encodingsCaptured)
     pickle.dump(known_face_names,knownNamesFile)
     knownNamesFile.close()
@@ -128,7 +139,8 @@ def Run_Face_Recognition(ServerImagePath):
     face_locations = face_recognition.face_locations(CurrentImage)
     face_encodings = face_recognition.face_encodings(CurrentImage, face_locations)
     
-    
+    Time_Stamp = time.time()
+    Time_Stamp = datetime.datetime.fromtimestamp(Time_Stamp).strftime('%Y-%m-%d_%Hh-%Mm-%Ss')
     
     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
         
@@ -155,7 +167,7 @@ def Run_Face_Recognition(ServerImagePath):
                 if not os.path.exists(dir_name):
                     print('making a new directory:',dir_name)
                     os.makedirs(dir_name)
-                cv2.imwrite(dir_name + "/" + str(len(known_face_names)) + ".jpg", face_image)
+                cv2.imwrite(dir_name + "/" + str(len(known_face_names))+"_"+ str(Time_Stamp) + ".jpg", face_image)
                 known_face_names.append(name)
                 known_face_encodings.append(face_encoding)
                 Write_Encoding_To_File(face_encoding)
@@ -171,7 +183,7 @@ def Run_Face_Recognition(ServerImagePath):
                 if not os.path.exists(dir_name):
                     print('making a new directory:',dir_name)
                     os.makedirs(dir_name)
-                cv2.imwrite(dir_name + "/" + str(len(known_face_names)) + ".jpg", face_image)
+                cv2.imwrite(dir_name + "/" + str(len(known_face_names))+"_"+ str(Time_Stamp) + ".jpg", face_image)
                 known_face_names.append(name)
                 known_face_encodings.append(face_encoding)
                 Write_Encoding_To_File(face_encoding)
@@ -184,7 +196,7 @@ def Run_Face_Recognition(ServerImagePath):
                 if not os.path.exists(dir_name):
                     print('making a new directory:',dir_name)
                     os.makedirs(dir_name)
-                cv2.imwrite(dir_name + "/1.jpg", face_image)
+                cv2.imwrite(dir_name + "/0_"+"_"+ str(Time_Stamp)+".jpg", face_image)
                 known_face_names.append(name)
                 known_face_encodings.append(face_encoding)
                 Write_Encoding_To_File(face_encoding)

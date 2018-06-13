@@ -12,6 +12,8 @@ import socket                   # Import socket module
 import io
 import os
 import _thread
+import time
+import datetime
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -52,7 +54,13 @@ class Queue:
 
 ImageReceivedQueue = Queue()
 #####################################################################################
-dir_server_image_dump = "ServerImages"
+
+generated_directory = "GeneratedData"
+if not os.path.exists(generated_directory):
+    os.makedirs(generated_directory)
+    
+    
+dir_server_image_dump = generated_directory + "/Server_Image_Received_Dump"
 if not os.path.exists(dir_server_image_dump):
     print("creating server images folder")
     os.makedirs(dir_server_image_dump)
@@ -97,7 +105,9 @@ def Server_Run_Forever():
             imageBytes = ImageReceivedQueue.removefromq()
             image = Image.open(io.BytesIO(imageBytes))
     #        image.show()
-            server_img_name = "server_"+str(server_img_counter) + ".jpg"
+            Time_Stamp = time.time()
+            Time_Stamp = datetime.datetime.fromtimestamp(Time_Stamp).strftime('%Y-%m-%d_%Hh%Mm%Ss')
+            server_img_name = "server_"+str(server_img_counter)+"_"+ str(Time_Stamp) + ".jpg"
             image_save_path = dir_server_image_dump+ "/"+ server_img_name
             print("saving image: ",server_img_name)
             

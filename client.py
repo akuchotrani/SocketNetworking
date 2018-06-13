@@ -10,7 +10,13 @@ import time
 import json
 import os
 
-dir_client_image_dump = "ClientImages"
+
+
+generated_directory = "GeneratedData"
+if not os.path.exists(generated_directory):
+    os.makedirs(generated_directory)
+
+dir_client_image_dump = generated_directory + "/Client_Captured_Images_Dump"
 if not os.path.exists(dir_client_image_dump):
     print("creating client images folder")
     os.makedirs(dir_client_image_dump)
@@ -26,7 +32,6 @@ CAM_Index = int(Data['CameraIndex'])
 
 timer_delay_capture = float(Data['ImageCaptureTimer'])
 SERVER_IP = Data['ServerIP']
-SERVER_HOST_NAME = Data['ServerHostName']
 
 
 Frame_Width_Resolution = float(Data['ResolutionWidth'])
