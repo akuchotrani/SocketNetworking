@@ -17,7 +17,8 @@ import datetime
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-port = 60000                    # Reserve a port for your service.
+port = FaceRecognitionComplete.Server_Port()     # Reserve a port for your service.
+deleteTrainImages = FaceRecognitionComplete.Delete_Train_Images()
 s = socket.socket()             # Create a socket object
 print(s)
 host = socket.gethostname()     # Get local machine name
@@ -114,6 +115,16 @@ def Server_Run_Forever():
             image.save(image_save_path)
             
             FaceRecognitionComplete.Run_Face_Recognition(image_save_path)
+            
+            if deleteTrainImages == 1:
+                ## If file exists, delete it ##
+                if os.path.isfile(image_save_path):
+                    print("Deleting Train Image: ",image_save_path)
+                    os.remove(image_save_path)
+                else:    ## Show an error ##
+                    print("Error: %s file not found" % image_save_path)
+                
+                
             server_img_counter = server_img_counter + 1
         
 #    image = Image.open(io.BytesIO(buffer))

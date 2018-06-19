@@ -39,7 +39,9 @@ Frame_Height_Resolution = float(Data['ResolutionHeight'])
 
 host = socket.gethostname()     # Get local machine name
 print("client host name:",host)
-port = 60000                    # Reserve a port for your service.
+port = int(Data['Port'])                    # Reserve a port for your service.
+
+deleteTrainImages = int(Data['DeleteTrainImage'])
 
 
 CV_CAP_PROP_FRAME_WIDTH = 3
@@ -47,17 +49,28 @@ CV_CAP_PROP_FRAME_HEIGHT = 4
 
 
 def Capture_Webcam_Image():
-    cam = cv2.VideoCapture(CAM_Index)
-    cam.set(CV_CAP_PROP_FRAME_WIDTH,Frame_Width_Resolution);
-    cam.set(CV_CAP_PROP_FRAME_HEIGHT,Frame_Height_Resolution);
+#    cam = cv2.VideoCapture(CAM_Index)
+#    cam.set(CV_CAP_PROP_FRAME_WIDTH,Frame_Width_Resolution)
+#    cam.set(CV_CAP_PROP_FRAME_HEIGHT,Frame_Height_Resolution)
+    cam = cv2.VideoCapture('LosAngeles.mp4')
+    cam.set(CV_CAP_PROP_FRAME_WIDTH,Frame_Width_Resolution)
+    cam.set(CV_CAP_PROP_FRAME_HEIGHT,Frame_Height_Resolution)
+    
+    
     image_counter = 0
     
     capture_time = time.time() + timer_delay_capture
     while True:
         ret,original_frame = cam.read()
+        #remove this line 
+        original_frame = cv2.resize(original_frame, (1920, 1080), interpolation = cv2.INTER_LINEAR)
+
+#        cv2.imshow('frame',original_frame)
         frame = original_frame[:, :, ::-1]
         cv2.imshow("webcam image",original_frame)
         if not ret:
+            cv2.release()
+            cv2.destroyAllWindows()
             break
         key = cv2.waitKey(1)
         
@@ -111,6 +124,13 @@ def Send_Image_To_Server(image_name,socket):
         socket.send(data)
     image_file.close()
     print('Successfully sent the file')
+    if deleteTrainImages == 1:
+        ## If file exists, delete it ##
+        if os.path.isfile(image_name):
+            print("Deleting Client Dump Image: ",image_name)
+            os.remove(image_name)
+        else:    ## Show an error ##
+            print("Error: %s file not found" % image_name)
 
     
     
