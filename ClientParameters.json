@@ -1,8 +1,10 @@
 {
+  "Port": "8001",
   "CameraIndex":"0",
-  "ImageCaptureTimer": "5",
-  "ResolutionWidth": "640",
-  "ResolutionHeight" : "480",
+  "ImageCaptureTimer": "2",
+  "ResolutionWidth": "1920",
+  "ResolutionHeight" : "1080",
   "ServerIP":"10.10.33.58",
-  "ServerHostName":"dit2578us"
+  "DeleteTrainImage": "1",
+  "RoomName":"Room1"
 }

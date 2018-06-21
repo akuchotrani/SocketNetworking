@@ -11,6 +11,9 @@ import json
 import os
 
 
+#################################################################
+#################################################################
+# Creating generated folders
 
 generated_directory = "GeneratedData"
 if not os.path.exists(generated_directory):
@@ -21,12 +24,18 @@ if not os.path.exists(dir_client_image_dump):
     print("creating client images folder")
     os.makedirs(dir_client_image_dump)
 
+
+
+
+################################################################
+################################################################
+# Getting all the json parameters for client
+
+
 with open('ClientParameters.json') as json_data:
     Data = json.load(json_data)
     print('Json Application Param Data')
     print(Data)
-    
-
 
 CAM_Index = int(Data['CameraIndex'])
 
@@ -34,16 +43,31 @@ timer_delay_capture = float(Data['ImageCaptureTimer'])
 SERVER_IP = Data['ServerIP']
 
 
-Frame_Width_Resolution = float(Data['ResolutionWidth'])
-Frame_Height_Resolution = float(Data['ResolutionHeight'])
+Frame_Width_Resolution = int(Data['ResolutionWidth'])
+Frame_Height_Resolution = int(Data['ResolutionHeight'])
 
 host = socket.gethostname()     # Get local machine name
 print("client host name:",host)
 port = int(Data['Port'])                    # Reserve a port for your service.
 
 deleteTrainImages = int(Data['DeleteTrainImage'])
+roomName = Data['RoomName']
 
 
+
+
+#################################################################
+#################################################################
+
+def Send_Client_Room_Name_To_Server():
+    s = socket.socket()            
+#    s.connect((SERVER_IP , port))
+#    s.send()
+
+
+
+
+#Open Cv Constants for width and height
 CV_CAP_PROP_FRAME_WIDTH = 3
 CV_CAP_PROP_FRAME_HEIGHT = 4
 
@@ -52,7 +76,9 @@ def Capture_Webcam_Image():
 #    cam = cv2.VideoCapture(CAM_Index)
 #    cam.set(CV_CAP_PROP_FRAME_WIDTH,Frame_Width_Resolution)
 #    cam.set(CV_CAP_PROP_FRAME_HEIGHT,Frame_Height_Resolution)
-    cam = cv2.VideoCapture('LosAngeles.mp4')
+    
+    
+    cam = cv2.VideoCapture('GirlsLikeYou.mp4')
     cam.set(CV_CAP_PROP_FRAME_WIDTH,Frame_Width_Resolution)
     cam.set(CV_CAP_PROP_FRAME_HEIGHT,Frame_Height_Resolution)
     
@@ -63,7 +89,7 @@ def Capture_Webcam_Image():
     while True:
         ret,original_frame = cam.read()
         #remove this line 
-        original_frame = cv2.resize(original_frame, (1920, 1080), interpolation = cv2.INTER_LINEAR)
+        original_frame = cv2.resize(original_frame, (Frame_Width_Resolution, Frame_Height_Resolution), interpolation = cv2.INTER_LINEAR)
 
 #        cv2.imshow('frame',original_frame)
         frame = original_frame[:, :, ::-1]

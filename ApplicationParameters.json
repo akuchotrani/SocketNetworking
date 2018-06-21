@@ -1,11 +1,9 @@
 {
-  "CameraIndex":[0],
-  "ImageCaptureTimer": "0",
+  "Port": "8001",
+  "DeleteTrainImages":"1",
   "KnownPersonConfidence": "0.4",
   "KnownPersonNewFaceConfidence": "0.6",
-  "ResolutionWidth": "640",
-  "ResolutionHeight" : "480",
-  "SharedFolderPath": "C:\\Users\\aakash.chotrani\\Desktop\\SocketNetworking\\ServerImages"
+  "TrainAgainOnFaces":"1"
 }
 
 

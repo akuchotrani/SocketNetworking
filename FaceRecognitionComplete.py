@@ -33,8 +33,12 @@ with open('ApplicationParameters.json') as json_data:
 
 #CameraIndex = Data['CameraIndex']    
 #CaptureTimer = float(Data['ImageCaptureTimer'])
+
+Port = int(Data['Port'])
+DeleteTrainImages = int(Data['DeleteTrainImages'])
 KnownPersonConfidence =float(Data['KnownPersonConfidence'])
 KnownPersonNewFaceConfidence =float(Data['KnownPersonNewFaceConfidence'])
+TrainAgainOnFaces = int(Data['TrainAgainOnFaces'])
 #SharedFolderPath = Data['SharedFolderPath']
 
 
@@ -57,27 +61,45 @@ dir_path = dir_save_face_path
 
 
 
-#Known_People_Count = 0
-#def Train_Known_Faces():
-#    global Known_People_Count
-#    global directory_already_trained
-#    directory_already_trained = []
-#
-#    for entry in os.scandir(dir_path):
-#        if entry.is_dir():
-#            Known_People_Count = Known_People_Count + 1
-#            #keeping track of all the directories already trained
-#            directory_already_trained.append(entry.path)
-#            for entry2 in os.scandir(entry.path):
-#                if entry2.is_file():
-#                    image = face_recognition.load_image_file(entry2.path)
-#                    face_encodings = face_recognition.face_encodings(image)
-#                    if len(face_encodings) == 0:
-#                        continue
-#                    
-#                    face_encoding = face_encodings[0]
-#                    known_face_names.append(entry.name)
-#                    known_face_encodings.append(face_encoding)
+Known_People_Count = 0
+def Generate_Encoding_From_Images():
+    print('#########################################')
+    print('Retraining on face images')
+    
+    
+    global Known_People_Count
+
+    print("Removing the previous encoding and known face text files")
+    encodingFile_path = Path(generated_directory + '/Encoding.txt')
+    if encodingFile_path.exists():
+        print("Previous Version Removed: Encoding.txt")
+        os.remove(encodingFile_path)
+    
+    knownNamesFile_Path = Path(generated_directory + '/Known_Names.txt')
+    if knownNamesFile_Path.exists():
+        print("Previous Version Removed: Known_Names.txt")
+        os.remove(knownNamesFile_Path)
+    
+    print("Scanning the directory for training: ",dir_path)
+    print("#### PLEASE WAIT TRAINING... #####")
+    for entry in os.scandir(dir_path):
+        if entry.is_dir():
+            Known_People_Count = Known_People_Count + 1
+            #keeping track of all the directories already trained
+            for entry2 in os.scandir(entry.path):
+                if entry2.is_file():
+                    image = face_recognition.load_image_file(entry2.path)
+                    face_encodings = face_recognition.face_encodings(image)
+                    if len(face_encodings) == 0:
+                        continue
+                    
+                    face_encoding = face_encodings[0]
+                    known_face_names.append(entry.name)
+                    known_face_encodings.append(face_encoding)
+                    Write_Encoding_To_File(face_encoding)
+
+    
+    print("Number of known faces trained:",Known_People_Count)
 
 
 #def Train_Face_Captured_By_Another_Camera(folder_name,path):
@@ -93,7 +115,18 @@ dir_path = dir_save_face_path
 
 
 
-def Train_Known_Encodings():
+def Delete_Train_Images():
+    return DeleteTrainImages
+
+def Server_Port():
+    return Port
+
+
+def Train_Again_Face_Images():
+    return TrainAgainOnFaces
+
+
+def Train_On_Encoding_File():
     global known_face_encodings
     global known_face_names
     print("Loading the encodings known already and face names")
@@ -109,7 +142,7 @@ def Train_Known_Encodings():
     if knownNamesFile_Path.exists():
         knownNamesFile = open(generated_directory + '/Known_Names.txt','rb')
         known_face_names = pickle.load(knownNamesFile)
-        print(known_face_names)
+        print("face known: ",known_face_names)
     else:
         print("Known Names File not found: No faces known")
     
@@ -130,9 +163,11 @@ def Write_Encoding_To_File(encodingsCaptured):
 
 def Run_Face_Recognition(ServerImagePath):
 
-    print(known_face_names)
     global directory_already_trained
+    print("----------------------------------------------------")
     print('Running Face recognition for image',ServerImagePath )
+    print("----------------------------------------------------")
+
 
     
     CurrentImage = face_recognition.load_image_file(ServerImagePath)

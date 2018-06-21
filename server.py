@@ -95,7 +95,8 @@ def recvall(sock,addr):
 def Server_Run_Forever():
 
 
-    print ('Server listening....')
+    print("############################################")
+    print ('Server Ready. Launch the client :)')
     server_img_counter = 0
     
     while True:
@@ -137,7 +138,11 @@ def Server_Run_Forever():
 
 ##########################################################################################
 def main():
-    FaceRecognitionComplete.Train_Known_Encodings()
+    
+    if(FaceRecognitionComplete.Train_Again_Face_Images() == 1):
+        FaceRecognitionComplete.Generate_Encoding_From_Images()
+
+    FaceRecognitionComplete.Train_On_Encoding_File()
     try:
         print("Running server forever")
         Server_Run_Forever()
