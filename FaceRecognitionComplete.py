@@ -18,6 +18,10 @@ import datetime
 #from multiprocessing import freeze_support
 #from multiprocessing import Pool
 
+
+
+#################################################################################################
+#Taking care of all global variables and json file variables
 known_face_names = []
 known_face_encodings = []
 directory_already_trained = []
@@ -31,23 +35,36 @@ with open('ApplicationParameters.json') as json_data:
     print('Json Application Param Data')
     print(Data)
 
-#CameraIndex = Data['CameraIndex']    
-#CaptureTimer = float(Data['ImageCaptureTimer'])
 
 Port = int(Data['Port'])
 DeleteTrainImages = int(Data['DeleteTrainImages'])
 KnownPersonConfidence =float(Data['KnownPersonConfidence'])
 KnownPersonNewFaceConfidence =float(Data['KnownPersonNewFaceConfidence'])
 TrainAgainOnFaces = int(Data['TrainAgainOnFaces'])
-#SharedFolderPath = Data['SharedFolderPath']
+BlurThreshold = int(Data['BlurThreshold'])
+MinFaceResolution_Width = int(Data['MinFaceResolution_Width'])
+MinFaceResolution_Height = int(Data['MinFaceResolution_Height'])
+#################################################################################################
 
 
+
+
+
+
+
+#################################################################################################
+#Creating all directories
 generated_directory = "GeneratedData"
 if not os.path.exists(generated_directory):
     os.makedirs(generated_directory)
 
-
-
+Face_Report_File_Name_Path = Path(generated_directory + '/Face_Report_Text_Dump_File.txt')
+if not os.path.exists(Face_Report_File_Name_Path):
+    print("--------------------------------------------")
+    print("Creating face report text file")
+    print("--------------------------------------------")
+    file = open(Face_Report_File_Name_Path,"w+")
+    file.close()
 
 
 #dir_save_face_path = "//" + SharedFolderPath
@@ -57,10 +74,49 @@ if not os.path.exists(dir_save_face_path):
 dir_path = dir_save_face_path
 
     
+#######################################################################################
+
+
+
+
+
+
+
+
+#################################################################################################
+#################################################################################################
+#Functions for detecting blur images
+def Detect_Image_Blur_And_Resolution(image):
+    global blur_counter
+	# compute the Laplacian of the image and then return the focus
+	# measure, which is simply the variance of the Laplacian
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    fm =  cv2.Laplacian(gray, cv2.CV_64F).var()
+ 
+	# if the focus measure is less than the supplied threshold,
+	# then the image should be considered "blurry"
+    if fm < BlurThreshold:
+        print("Captured face was blurry hence ignoring processing it")
+        return False
+    else:
+        height, width, channels = image.shape
+        if(height < MinFaceResolution_Height or width < MinFaceResolution_Width):
+            print("The resolution of face image is too small hence ignoring it: height",height," width:",width)
+            return False
+        else:
+            return True
+#################################################################################################
+    
+    
+    
+    
+    
     
 
-
-
+#################################################################################################
+#################################################################################################
+#Generating encodings 
 Known_People_Count = 0
 def Generate_Encoding_From_Images():
     print('#########################################')
@@ -113,8 +169,8 @@ def Generate_Encoding_From_Images():
 #            known_face_names.append(folder_name)
 #            known_face_encodings.append(face_encoding)
 
-
-
+#################################################################################################
+#Sending json parameters to server.py
 def Delete_Train_Images():
     return DeleteTrainImages
 
@@ -124,6 +180,7 @@ def Server_Port():
 
 def Train_Again_Face_Images():
     return TrainAgainOnFaces
+#################################################################################################
 
 
 def Train_On_Encoding_File():
@@ -157,11 +214,22 @@ def Write_Encoding_To_File(encodingsCaptured):
 #    encodingFile.write("%s\n"%encodingsCaptured)
     pickle.dump(known_face_names,knownNamesFile)
     knownNamesFile.close()
+    
+
+        
+        
+def Write_Face_Report_Text_File(face_file_name):
+    Face_Report_File_Name_Path = Path(generated_directory + '/Face_Report_Text_Dump_File.txt')
+    if Face_Report_File_Name_Path.exists():
+        print("Recording Image in text file")
+        file = open(Face_Report_File_Name_Path,"a")
+        file.write(face_file_name+"\n")
+        file.close()
 
 
 
 
-def Run_Face_Recognition(ServerImagePath):
+def Run_Face_Recognition(ServerImagePath,room_name):
 
     global directory_already_trained
     print("----------------------------------------------------")
@@ -196,20 +264,33 @@ def Run_Face_Recognition(ServerImagePath):
         if lowest_distance < KnownPersonConfidence:
                 name = known_face_names[lowest_index]
                 print("I know this person. Capture and Classify to the correct folder")
-                face_image = CurrentImage[top:bottom, left:right]    
+                face_image = CurrentImage[top:bottom, left:right]
+                
+                check_blur_resolution = Detect_Image_Blur_And_Resolution(face_image)
+                if(check_blur_resolution == False):
+                    continue
+
                 name = known_face_names[lowest_index]
                 dir_name = dir_path + "/" + name
                 if not os.path.exists(dir_name):
                     print('making a new directory:',dir_name)
                     os.makedirs(dir_name)
-                cv2.imwrite(dir_name + "/" + str(len(known_face_names))+"_"+ str(Time_Stamp) + ".jpg", face_image)
+                
+                file_name ="$"+name +"$"+ str(Time_Stamp) +"$"+room_name
+                cv2.imwrite(dir_name + "/" + file_name+".jpg", face_image)
                 known_face_names.append(name)
                 known_face_encodings.append(face_encoding)
                 Write_Encoding_To_File(face_encoding)
+                Write_Face_Report_Text_File(file_name)
                 found = True
 
         if found == False:
-            face_image = CurrentImage[top:bottom, left:right]    
+            face_image = CurrentImage[top:bottom, left:right]
+            
+            check_blur_resolution = Detect_Image_Blur_And_Resolution(face_image)
+            if(check_blur_resolution == False):
+                continue
+
             #We know this person but less confident
             if lowest_distance < KnownPersonNewFaceConfidence:
                 print("New Expression of known person. Hence capturing it")
@@ -218,23 +299,34 @@ def Run_Face_Recognition(ServerImagePath):
                 if not os.path.exists(dir_name):
                     print('making a new directory:',dir_name)
                     os.makedirs(dir_name)
-                cv2.imwrite(dir_name + "/" + str(len(known_face_names))+"_"+ str(Time_Stamp) + ".jpg", face_image)
+                file_name = "$"+name +"$"+ str(Time_Stamp) +"$"+room_name
+                cv2.imwrite(dir_name + "/"+file_name+".jpg", face_image)
                 known_face_names.append(name)
                 known_face_encodings.append(face_encoding)
                 Write_Encoding_To_File(face_encoding)
+                Write_Face_Report_Text_File(file_name)
 
             #We have seen this face for the first time. Create a new directory.
             else:
+                face_image = CurrentImage[top:bottom, left:right]
+                
+                check_blur_resolution = Detect_Image_Blur_And_Resolution(face_image)
+                if(check_blur_resolution == False):
+                    continue
+                
                 print("I don't know this person hence creating a new directory")
                 name = "face_" + str(len(known_face_names))
                 dir_name = dir_path + "/" + name
                 if not os.path.exists(dir_name):
                     print('making a new directory:',dir_name)
                     os.makedirs(dir_name)
-                cv2.imwrite(dir_name + "/0_"+"_"+ str(Time_Stamp)+".jpg", face_image)
+                file_name = "$"+name +"$"+ str(Time_Stamp) +"$"+room_name
+                cv2.imwrite(dir_name +"/"+file_name+".jpg", face_image)
                 known_face_names.append(name)
                 known_face_encodings.append(face_encoding)
                 Write_Encoding_To_File(face_encoding)
+                Write_Face_Report_Text_File(file_name)
+
 
         face_names_found.append(name)
     

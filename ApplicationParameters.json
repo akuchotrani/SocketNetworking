@@ -3,7 +3,10 @@
   "DeleteTrainImages":"1",
   "KnownPersonConfidence": "0.4",
   "KnownPersonNewFaceConfidence": "0.6",
-  "TrainAgainOnFaces":"1"
+  "TrainAgainOnFaces":"1",
+  "MinFaceResolution_Width":"60",
+  "MinFaceResolution_Height":"60",
+  "BlurThreshold":"20"
 }
 
 
