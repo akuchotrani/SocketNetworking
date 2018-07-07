@@ -61,8 +61,8 @@ roomName = Data['RoomName']
 
 def Send_Client_Room_Name_To_Server():
     s = socket.socket()            
-#    s.connect((SERVER_IP , port))
-#    s.send()
+    s.connect((SERVER_IP , port))
+    s.send(roomName.encode())
 
 
 
@@ -73,14 +73,14 @@ CV_CAP_PROP_FRAME_HEIGHT = 4
 
 
 def Capture_Webcam_Image():
-#    cam = cv2.VideoCapture(CAM_Index)
-#    cam.set(CV_CAP_PROP_FRAME_WIDTH,Frame_Width_Resolution)
-#    cam.set(CV_CAP_PROP_FRAME_HEIGHT,Frame_Height_Resolution)
-    
-    
-    cam = cv2.VideoCapture('GirlsLikeYou.mp4')
+    cam = cv2.VideoCapture(CAM_Index)
     cam.set(CV_CAP_PROP_FRAME_WIDTH,Frame_Width_Resolution)
     cam.set(CV_CAP_PROP_FRAME_HEIGHT,Frame_Height_Resolution)
+    
+#IF you want to train on video instead of webcam feed.    
+#    cam = cv2.VideoCapture('GirlsLikeYou.mp4')
+#    cam.set(CV_CAP_PROP_FRAME_WIDTH,Frame_Width_Resolution)
+#    cam.set(CV_CAP_PROP_FRAME_HEIGHT,Frame_Height_Resolution)
     
     
     image_counter = 0
@@ -100,12 +100,16 @@ def Capture_Webcam_Image():
             break
         key = cv2.waitKey(1)
         
+        #when escape is pressed it will exit the training.
         if key%256 == 27:
             print("Escape pressed, closing....")
             cam.release()
             cv2.destroyAllWindows()
             print('connection closed')
             break
+        
+        #you can explicitly press spacebar to capture current frame and send it to the server.
+        #Used for debugging purposes.
         elif key%256 == 32:
             #Space pressed
             s = socket.socket()             # Create a socket object
@@ -136,7 +140,7 @@ def Capture_Webcam_Image():
             
         
 
-
+#Sending image to the server
 def Send_Image_To_Server(image_name,socket):
     print("Client: Send_Image_To_Server: ",image_name)
     image_file = open(image_name,'rb')
@@ -162,6 +166,7 @@ def Send_Image_To_Server(image_name,socket):
     
 def main():
     print("Client Launched")
+    Send_Client_Room_Name_To_Server()
     Capture_Webcam_Image() 
 
 
